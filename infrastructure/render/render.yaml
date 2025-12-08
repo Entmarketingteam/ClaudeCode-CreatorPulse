@@ -1,0 +1,71 @@
+# Creator Pulse - Render Deployment Configuration
+
+services:
+  # Backend API Service
+  - type: web
+    name: creator-pulse-api
+    env: docker
+    dockerfilePath: ./infrastructure/railway/Dockerfile
+    dockerContext: .
+    region: oregon
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: GOOGLE_AI_API_KEY
+        sync: false
+      - key: COOKIE_ENCRYPTION_SECRET
+        generateValue: true
+      - key: COOKIE_ENCRYPTION_SALT
+        generateValue: true
+      - key: API_KEY
+        generateValue: true
+    autoDeploy: true
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+
+  # n8n Workflow Engine (Optional - can use n8n cloud)
+  - type: web
+    name: creator-pulse-n8n
+    env: docker
+    dockerImage: n8nio/n8n:latest
+    region: oregon
+    plan: starter
+    envVars:
+      - key: N8N_BASIC_AUTH_ACTIVE
+        value: "true"
+      - key: N8N_BASIC_AUTH_USER
+        sync: false
+      - key: N8N_BASIC_AUTH_PASSWORD
+        sync: false
+      - key: WEBHOOK_URL
+        fromService:
+          name: creator-pulse-n8n
+          type: web
+          property: host
+      - key: N8N_HOST
+        fromService:
+          name: creator-pulse-n8n
+          type: web
+          property: host
+      - key: N8N_PROTOCOL
+        value: "https"
+      - key: N8N_ENCRYPTION_KEY
+        generateValue: true
+    disk:
+      name: n8n-data
+      mountPath: /home/node/.n8n
+      sizeGB: 1
+
+databases:
+  # Redis for caching (optional)
+  - name: creator-pulse-redis
+    plan: free
+    region: oregon
+    ipAllowList: []
