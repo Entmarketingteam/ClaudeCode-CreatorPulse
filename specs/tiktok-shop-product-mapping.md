@@ -366,6 +366,8 @@ def normalize(text):
 
 ## Data Models
 
+> **Database Schema**: See [`/supabase/migrations/001_initial_schema.sql`](../supabase/migrations/001_initial_schema.sql) for the complete Postgres/Supabase implementation with RLS policies.
+
 ### Product (Unified)
 
 ```typescript
@@ -477,10 +479,25 @@ interface ContentMapping {
 | Component | Recommended Tech | Purpose |
 |-----------|-----------------|---------|
 | Backend | Node.js / Python | API orchestration |
-| Database | PostgreSQL | Product data, matches |
+| Database | Supabase (PostgreSQL) | Product data, matches, RLS |
 | Cache | Redis | API response caching |
 | Queue | Bull / Celery | Async processing |
 | Search | Elasticsearch | Fuzzy text matching |
+
+### Database Tables (Supabase)
+
+| Table | Purpose |
+|-------|---------|
+| `accounts` | Multi-tenant root (plans, billing) |
+| `creators` | Influencer profiles (LTK, IG, TikTok usernames) |
+| `connections` | API credentials per platform (encrypted secrets) |
+| `posts` | Ingested content from all sources |
+| `products` | Extracted/resolved product data with identifiers |
+| `matches` | Cross-platform product matches with confidence scores |
+| `content_packs` | Repurposed content bundles with affiliate links |
+| `audit_logs` | Activity tracking |
+
+All tables have **Row Level Security (RLS)** enabled - users only see their account's data.
 
 ### External Services
 
